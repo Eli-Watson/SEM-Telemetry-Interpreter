@@ -1,16 +1,3 @@
-#  ____  _____ __  __  ____                 _
-# / ___|| ____|  \/  |/ ___|_ __ __ _ _ __ | |__
-# \___ \|  _| | |\/| | |  _| '__/ _` | '_ \| '_ \
-#  ___) | |___| |  | | |_| | | | (_| | |_) | | | |
-# |____/|_____|_|  |_|\____|_|  \__,_| .__/|_| |_|
-#                                    |_|
-# Shell Eco Marathon Graphing Tool
-# By Eli Watson
-# my attempt at a cli python program - Eli Watson 4/3/25 (Comp Softmore Year)
-# I hope that this script is helpful in making graphs to interpret the telemetry data put out by shell.
-# Special Thanks to Marcus Schmitd from Schmitd Elektronik for helping me learn all this and all the work they have done for SEM
-# https://schmid-elektronik.ch/racebootcamp/
-
 import cmd
 import os
 import pandas as pd
@@ -66,13 +53,10 @@ class CLI(cmd.Cmd):
         if os.path.exists(dir_to_list):
             files = os.listdir(dir_to_list)
             print(Fore.RED + f"Files in {dir_to_list}:")
-            # for file in files:
-            #     print(Fore.BLUE + file)
         else:
             print(Fore.YELLOW + f"Directory {dir_to_list} does not exist.")
             return None, None
 
-        # Now, create an inquirer prompt to select a file to graph
         if files:  # Check if there are files to choose from
             questions_files = [
                 inquirer.List(
@@ -95,6 +79,8 @@ class CLI(cmd.Cmd):
 
     def generate_graph(self, df, graph_type):
         """Helper method to generate graphs based on user selection."""
+        fig = None  # Initialize fig to ensure it's always defined
+
         if graph_type == 'map':
             print('Generating map...')
             fig = df.plot(x='gps_longitude', y='gps_latitude', color='lap_lap')
@@ -122,8 +108,14 @@ class CLI(cmd.Cmd):
                 df.loc[ind, 'consumption'] = (df.loc[ind, 'lfm_integratedcorrflow'] - df.loc[ind_prev, 'lfm_integratedcorrflow']) / (df.loc[ind, 'obc_timestamp'] - df.loc[ind_prev, 'obc_timestamp'])
 
             fig = df.plot.scatter(x='acceleration', y='gps_speed', color='consumption')
-
-        fig.show()
+        else:
+            print(Fore.YELLOW + f"Error: Graph type '{graph_type}' not recognized.")
+        
+        # Check if fig is still None (no valid graph was generated)
+        if fig is not None:
+            fig.show()
+        else:
+            print(Fore.YELLOW + "No valid graph could be generated due to invalid graph type.")
 
     # Commands 
     def do_quit(self, line):
@@ -164,7 +156,6 @@ class CLI(cmd.Cmd):
         print("acel-speed-dotplot: Dotplot of acceleration, speed and fuel consumption")
         print('')
 
-        # graph_type = input("What graph would you like to generate?: ")
         questions = [
             inquirer.Checkbox(
                 "type",
