@@ -5,7 +5,7 @@
 # |____/|_____|_|  |_|\____|_|  \__,_| .__/|_| |_|
 #                                    |_|
 # Shell Eco Marathon Graphing Tool
-# By Eli Watosn
+# By Eli Watson
 # my attempt at a cli python program - Eli Watson 4/3/25 (Comp Softmore Year)
 # I hope that this script is helpful in making graphs to interpret the telemetry data put out by shell.
 # Special Thanks to Marcus Schmitd from Schmitd Elektronik for helping me learn all this and all the work they have done for SEM
