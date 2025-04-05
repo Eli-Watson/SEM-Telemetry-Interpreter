@@ -42,12 +42,12 @@ class CLI(cmd.Cmd):
 
     def select_data_file(self):
         """Helper method to handle file selection process using inquirer."""
-        print('What Data Directory would you like to list? U for Urban P for Proto or S for Sample data?')
+        print('What Data Directory would you like to list? Select select from the list below with your arrow keys. Hit Enter over the option you want.')
 
         questions = [
             inquirer.List(
                 "Dir",
-                message="What Data dir ",
+                message=Fore.RED + "What Data dir would you like to list?",
                 choices=["Urban", "Proto", "Sample"],
             ),
         ]
@@ -82,6 +82,7 @@ class CLI(cmd.Cmd):
                 ),
             ]
             graphing_source = inquirer.prompt(questions_files)["graph_file"]
+            print(graphing_source)
             file_path = os.path.join(dir_to_list, graphing_source)
 
             if not os.path.exists(file_path):
@@ -95,33 +96,34 @@ class CLI(cmd.Cmd):
 
     def generate_graph(self, df, graph_type):
         """Helper method to generate graphs based on user selection."""
-        if graph_type == 'map':
-            print('Generating map...')
-            fig = df.plot(x='gps_longitude', y='gps_latitude', color='lap_lap')
-        elif graph_type == 'map-flow':
-            print('Generating map-flow...')
-            fig = df.plot(x='gps_longitude', y='gps_latitude', color='lfm_instantflow', kind='scatter', facet_col='lap_lap', facet_col_wrap=4)
-        elif graph_type == 'flow-dist':
-            print('Generating flow-dist...')
-            fig = df.plot(x='lap_dist', y='lfm_instantflow', color='lap_lap')
-        elif graph_type == 'joule-dist':
-            print('Generating joule-dist...')
-            fig = df.plot(x='lap_dist', y='lap_jm3_netjoule', color='lap_lap')
-        elif graph_type == 'speed-dist':
-            print('Generating speed-dist...')
-            fig = df.plot(x='lap_dist', y='gps_speed', color='lap_lap')
-        elif graph_type == 'acel-speed-dotplot':
-            print('Generating acel-speed-dotplot...')
-            df['acceleration'] = 0.
-            df['consumption'] = 0.
-            window_len = 30
+        match graph_type:
+            case 'map':
+                print('Generating map...')
+                fig = df.plot(x='gps_longitude', y='gps_latitude', color='lap_lap')
+            case 'map-flow':
+                print('Generating map-flow...')
+                fig = df.plot(x='gps_longitude', y='gps_latitude', color='lfm_instantflow', kind='scatter', facet_col='lap_lap', facet_col_wrap=4)
+            case 'flow-dist':
+                print('Generating flow-dist...')
+                fig = df.plot(x='lap_dist', y='lfm_instantflow', color='lap_lap')
+            case 'joule-dist':
+                print('Generating joule-dist...')
+                fig = df.plot(x='lap_dist', y='lap_jm3_netjoule', color='lap_lap')
+            case 'speed-dist':
+                print('Generating speed-dist...')
+                fig = df.plot(x='lap_dist', y='gps_speed', color='lap_lap')
+            case 'acel-speed-dotplot':
+                print('Generating acel-speed-dotplot...')
+                df['acceleration'] = 0.
+                df['consumption'] = 0.
+                window_len = 30
 
-            for ind in range(window_len, len(df)):
-                ind_prev = ind - window_len
-                df.loc[ind, 'acceleration'] = (df.loc[ind, 'gps_speed'] - df.loc[ind_prev, 'gps_speed']) / (df.loc[ind, 'obc_timestamp'] - df.loc[ind_prev, 'obc_timestamp'])
-                df.loc[ind, 'consumption'] = (df.loc[ind, 'lfm_integratedcorrflow'] - df.loc[ind_prev, 'lfm_integratedcorrflow']) / (df.loc[ind, 'obc_timestamp'] - df.loc[ind_prev, 'obc_timestamp'])
+                for ind in range(window_len, len(df)):
+                    ind_prev = ind - window_len
+                    df.loc[ind, 'acceleration'] = (df.loc[ind, 'gps_speed'] - df.loc[ind_prev, 'gps_speed']) / (df.loc[ind, 'obc_timestamp'] - df.loc[ind_prev, 'obc_timestamp'])
+                    df.loc[ind, 'consumption'] = (df.loc[ind, 'lfm_integratedcorrflow'] - df.loc[ind_prev, 'lfm_integratedcorrflow']) / (df.loc[ind, 'obc_timestamp'] - df.loc[ind_prev, 'obc_timestamp'])
 
-            fig = df.plot.scatter(x='acceleration', y='gps_speed', color='consumption')
+                fig = df.plot.scatter(x='acceleration', y='gps_speed', color='consumption')
 
         fig.show()
 
@@ -165,14 +167,17 @@ class CLI(cmd.Cmd):
         print('')
 
         # graph_type = input("What graph would you like to generate?: ")
+        #uses inquirer to select from list
         questions = [
-            inquirer.Checkbox(
+            inquirer.List(
                 "type",
-                message="What Data dir ",
+                message=Fore.RED + "Select a Graph",
                 choices=["map", "map-flow","flow-dist","joule-dist", "speed-dist", "acel-speed-dotplot"]
                 ),
         ]
-        graph_type = inquirer.prompt(questions)['type']
+        # by defualt it passes a dictinary with ["Type": "choice"], below querys it jusr for the choice
+        graph_type = inquirer.prompt(questions)["type"]
+        print(graph_type)
         self.generate_graph(df, graph_type)
 
     def do_graph(self, line):
