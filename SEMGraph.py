@@ -30,7 +30,6 @@ class CLI(cmd.Cmd):
     # Helper Functions
 
     def print_banner(self):
-        # Create the ASCII banner text using the default "Standard" font
         banner = pyfiglet.figlet_format("SEMGraph", font="standard")
         print(Fore.RED + banner)
 
@@ -66,14 +65,12 @@ class CLI(cmd.Cmd):
         if os.path.exists(dir_to_list):
             files = os.listdir(dir_to_list)
             print(Fore.RED + f"Files in {dir_to_list}:")
-            # for file in files:
-            #     print(Fore.BLUE + file)
         else:
             print(Fore.YELLOW + f"Directory {dir_to_list} does not exist.")
             return None, None
 
-        # Now, create an inquirer prompt to select a file to graph
-        if files:  # Check if there are files to choose from
+        # inquirer prompt to select a file to graph
+        if files:
             questions_files = [
                 inquirer.List(
                     "graph_file",
@@ -93,7 +90,8 @@ class CLI(cmd.Cmd):
         else:
             print(Fore.YELLOW + f"No files found in {dir_to_list}.")
             return None, None
-
+    
+    # these are the actual graphs being generated
     def generate_graph(self, df, graph_type):
         """Helper method to generate graphs based on user selection."""
         match graph_type:
@@ -160,7 +158,7 @@ class CLI(cmd.Cmd):
             print(Fore.YELLOW + f"Error reading CSV file: {e}")
             return
 
-        # Ask for the graph type
+        # Graph Descritons
         print(Fore.RED + "What graph type would you like to generate?")
         print('')
         print(Fore.RED + 'Engine Type Agnostic')
@@ -175,8 +173,6 @@ class CLI(cmd.Cmd):
         print("BE-Joule-map: A Gps map of the course overlayed by energy consumption")
         print("Current-Dist: Current consumtion at diffrent points in the track")
 
-
-        # graph_type = input("What graph would you like to generate?: ")
         #uses inquirer to select from list
         questions = [
             inquirer.List(
@@ -209,7 +205,7 @@ class CLI(cmd.Cmd):
             print(Fore.YELLOW + f"Error reading CSV file: {e}")
             return
 
-        # Generate multiple graphs
+        # Generate multiple graphs, the useful stuff. for the moment these are ICE spesefic
         print("Generating graphs...")
         self.generate_graph(df, 'map')
         self.generate_graph(df, 'map-flow')
@@ -218,11 +214,12 @@ class CLI(cmd.Cmd):
         self.generate_graph(df, 'speed-dist')
         self.generate_graph(df, 'acel-speed-dotplot')
 
-    def do_settings(self, line):
-        """Option to change user settings"""
-        print(Fore.RED + 'Settings')
-        print('What Setting would you like to change?')
-        print('')
+    #WIP coming soon, as soon as I have a need for settings this will get added.
+    # def do_settings(self, line):
+    #     """Option to change user settings"""
+    #     print(Fore.RED + 'Settings')
+    #     print('What Setting would you like to change?')
+    #     print('')
 
 if __name__ == '__main__':
     CLI().cmdloop()
