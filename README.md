@@ -8,7 +8,7 @@ Telemetry reffrence: https://telemetry.sem-app.com/wiki/doku.php/telemetry_data/
 
 ## Get Started
 ### Installation
-1. Install prerequisites Python, Plotly, Pandas, pyfiglet, and colorama using package manager of choice
+1. Install prerequisites Python, Plotly, Pandas, pyfiglet, inquirer, and colorama using package manager of choice
 2. clone the repo
 3. place telemetry data in "Data" with corresponding sub folder
 3. run "python SEMGraph.py" and start making graphs!
