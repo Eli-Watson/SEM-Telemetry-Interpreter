@@ -1,27 +1,41 @@
-# Bearcat Motorsports Data Visualization Cli Tool
+#  ____  _____ __  __  ____                 _
+# / ___|| ____|  \/  |/ ___|_ __ __ _ _ __ | |__
+# \___ \|  _| | |\/| | |  _| '__/ _` | '_ \| '_ \
+#  ___) | |___| |  | | |_| | | | (_| | |_) | | | |
+# |____/|_____|_|  |_|\____|_|  \__,_| .__/|_| |_|
+#                                    |_|
+# Shell Eco Marathon Graphing Tool
+# By Eli Watosn
 # my attempt at a cli python program - Eli Watson 4/3/25 (Comp Softmore Year)
-#Goals of script :
-#- Be able to select wether or not to use the newest data set or manually enter wich one
-#- Be able to select what out of the preset graphs is needed
-#- Be able to output to a more human readable format
+# I hope that this script is helpful in making graphs to interpret the telemetry data put out by shell.
+# Special Thanks to Marcus Schmitd from Schmitd Elektronik for helping me learn all this and all the work they have done for SEM
+# https://schmid-elektronik.ch/racebootcamp/
 
 import cmd
 import os
 import pandas as pd
 import plotly.io as pio
 import plotly.graph_objects as go
+import pyfiglet
+from colorama import Fore, Back, Style, init
+# option for colorama to reset the color after each use, otherwise it changes for the entire program
+init(autoreset=True)
 
 class CLI(cmd.Cmd):
     prompt = '>> '
-    intro = 'Welcome to the Shell Eco Marathon Graphing (SEMGraph) tool. Type "help" for available commands. By Eli Watson'
-    def do_quit(self, line):
-        """Exit the CLI."""
-        print("Are you sure you want to quit?")
-        confirmquit = input("y or n: ")
-        if confirmquit.lower() == "y":
-            return True
-        else:
-            print("Quit cancelled")
+    welcome = 'Welcome to the Shell Eco Marathon Graphing (SEMGraph) tool. Type "help" for available commands. By Eli Watson'
+    #Helper Funtions
+    
+    def print_banner(self):
+    # Create the ASCII banner text using the default "Standard" font
+        banner = pyfiglet.figlet_format("SEMGraph", font="standard")
+        print(Fore.RED + banner)
+    
+    def preloop(self):
+        # This method is automatically called before the CmdLoop starts.
+        self.print_banner()  
+        print(self.welcome)
+        print(Fore.WHITE)
 
     def select_data_file(self):
         """Helper method to handle file selection process."""
@@ -36,16 +50,16 @@ class CLI(cmd.Cmd):
             case "s":
                 dir_to_list = "./Data/Sample/"
             case _:
-                print("Invalid selection. Please choose 'u', 'p', or 's'.")
+                print(Fore.YELLOW + "Invalid selection. Please choose 'u', 'p', or 's'.")
                 return None, None
 
         if os.path.exists(dir_to_list):
             files = os.listdir(dir_to_list)
-            print(f"Files in {dir_to_list}:")
+            print(Fore.RED + f"Files in {dir_to_list}:")
             for file in files:
-                print(file)
+                print(Fore.BLUE + file)
         else:
-            print(f"Directory {dir_to_list} does not exist.")
+            print(Fore.YELLOW + f"Directory {dir_to_list} does not exist.")
             return None, None
 
         # Ask for the file to graph
@@ -53,7 +67,7 @@ class CLI(cmd.Cmd):
         file_path = os.path.join(dir_to_list, graphing_source)
         
         if not os.path.exists(file_path):
-            print(f"Error: The file '{graphing_source}' does not exist in the directory '{dir_to_list}'")
+            print(Fore.YELLOW + f"Error: The file '{graphing_source}' does not exist in the directory '{dir_to_list}'")
             return None, None
 
         return file_path, dir_to_list
@@ -90,6 +104,17 @@ class CLI(cmd.Cmd):
 
         fig.show()
 
+    # Commands 
+    def do_quit(self, line):
+        """Exit the CLI."""
+        print(Fore.RED + "Are you sure you want to quit?")
+        confirmquit = input("y or n: ")
+        if confirmquit.lower() == "y":
+            return True
+        else:
+            print("Quit cancelled")
+
+
     def do_graph_select(self, line):
         """Generate a specific graph from a list of options."""
         print("Generating Graph...")
@@ -105,11 +130,11 @@ class CLI(cmd.Cmd):
             df = pd.read_csv(file_path, sep=',', low_memory=False)
             df = df.loc[df['lap_dist'] < 4000]
         except Exception as e:
-            print(f"Error reading CSV file: {e}")
+            print(Fore.YELLOW + f"Error reading CSV file: {e}")
             return
 
         # Ask for the graph type
-        print("What graph type would you like to generate?")
+        print(Fore.RED + "What graph type would you like to generate?")
         print('')
         print("map: a map of the course using GPS")
         print("map-flow: A GPS map of the track overlayed with data from flow meter")
@@ -138,7 +163,7 @@ class CLI(cmd.Cmd):
             df = pd.read_csv(file_path, sep=',', low_memory=False)
             df = df.loc[df['lap_dist'] < 4000]
         except Exception as e:
-            print(f"Error reading CSV file: {e}")
+            print(Fore.YELLOW + f"Error reading CSV file: {e}")
             return
 
         # Generate multiple graphs
@@ -152,3 +177,4 @@ class CLI(cmd.Cmd):
 
 if __name__ == '__main__':
     CLI().cmdloop()
+    CLI.cmdloop()
