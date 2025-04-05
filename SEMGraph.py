@@ -25,7 +25,7 @@ init(autoreset=True)
 
 class CLI(cmd.Cmd):
     prompt = '>> '
-    welcome = 'Welcome to the Shell Eco Marathon Graphing (SEMGraph) tool. Type "help" for available commands. By Eli Watson'
+    welcome = 'Welcome to the Shell Eco Marathon Graphing (SEMGraph) tool. By Eli Watson, Bearcat Motorsports'
     
     # Helper Functions
 
@@ -38,7 +38,7 @@ class CLI(cmd.Cmd):
         # This method is automatically called before the CmdLoop starts.
         self.print_banner()  
         print(self.welcome)
-        print(Fore.WHITE)
+        print('Type "Help" for a list of avalible options')
 
     def select_data_file(self):
         """Helper method to handle file selection process using inquirer."""
@@ -124,7 +124,12 @@ class CLI(cmd.Cmd):
                     df.loc[ind, 'consumption'] = (df.loc[ind, 'lfm_integratedcorrflow'] - df.loc[ind_prev, 'lfm_integratedcorrflow']) / (df.loc[ind, 'obc_timestamp'] - df.loc[ind_prev, 'obc_timestamp'])
 
                 fig = df.plot.scatter(x='acceleration', y='gps_speed', color='consumption')
-
+            case 'BE-Joule-map':
+                print('Generating BE-Joule-map...')
+                fig = df.plot(x='gps_longitude', y='gps_latitude', color='jm3_current', kind='scatter', facet_col='lap_lap', facet_col_wrap=4)
+            case 'Current-Dist':
+                print('Generating Current-dist...')
+                fig = df.plot(x='lap_dist', y='jm3_current', color='lap_lap')
         fig.show()
 
     # Commands 
@@ -138,7 +143,7 @@ class CLI(cmd.Cmd):
             print("Quit cancelled")
 
     def do_graph_select(self, line):
-        """Generate a specific graph from a list of options."""
+        """Generate a specific graph from a list of options. """
         print("Generating Graph...")
 
         file_path, _ = self.select_data_file()
@@ -158,13 +163,18 @@ class CLI(cmd.Cmd):
         # Ask for the graph type
         print(Fore.RED + "What graph type would you like to generate?")
         print('')
+        print(Fore.RED + 'Engine Type Agnostic')
         print("map: a map of the course using GPS")
+        print("speed-dist: Speed at different distances")
+        print(Fore.RED + 'ICE Spesific:')
         print("map-flow: A GPS map of the track overlayed with data from flow meter")
         print("flow-dist: Flow rate at different distances")
-        print("joule-dist: Net amount of energy used at different distances")
-        print("speed-dist: Speed at different distances")
         print("acel-speed-dotplot: Dotplot of acceleration, speed and fuel consumption")
-        print('')
+        print(Fore.RED + "BE Spesific:")
+        print("joule-dist: Net amount of energy used at different distances")
+        print("BE-Joule-map: A Gps map of the course overlayed by energy consumption")
+        print("Current-Dist: Current consumtion at diffrent points in the track")
+
 
         # graph_type = input("What graph would you like to generate?: ")
         #uses inquirer to select from list
@@ -172,7 +182,7 @@ class CLI(cmd.Cmd):
             inquirer.List(
                 "type",
                 message=Fore.RED + "Select a Graph",
-                choices=["map", "map-flow","flow-dist","joule-dist", "speed-dist", "acel-speed-dotplot"]
+                choices=["map", "map-flow","flow-dist","joule-dist", "speed-dist", "acel-speed-dotplot", 'BE-Joule-map', 'Current-Dist']
                 ),
         ]
         # by defualt it passes a dictinary with ["Type": "choice"], below querys it jusr for the choice
@@ -181,7 +191,7 @@ class CLI(cmd.Cmd):
         self.generate_graph(df, graph_type)
 
     def do_graph(self, line):
-        """Generate standard graphs from the telemetry data."""
+        """Generate standard graphs from the telemetry data. (BE is WIP, these are ICE spesific for now. BE options are under graph_select)"""
         print("Generating Standard Graph Set.")
         
         file_path, _ = self.select_data_file()
