@@ -17,7 +17,7 @@ import pandas as pd
 import plotly.io as pio
 import plotly.graph_objects as go
 import pyfiglet
-from colorama import Fore, Back, Style, init
+from colorama import Fore, init
 import inquirer
 
 # option for colorama to reset the color after each use, otherwise it changes for the entire program
@@ -26,9 +26,8 @@ init(autoreset=True)
 class CLI(cmd.Cmd):
     prompt = '>> '
     welcome = 'Welcome to the Shell Eco Marathon Graphing (SEMGraph) tool. By Eli Watson, Bearcat Motorsports'
-    
-    # Helper Functions
 
+    # Helper Functions
     def print_banner(self):
         banner = pyfiglet.figlet_format("SEMGraph", font="standard")
         print(Fore.RED + banner)
@@ -37,11 +36,11 @@ class CLI(cmd.Cmd):
         # This method is automatically called before the CmdLoop starts.
         self.print_banner()  
         print(self.welcome)
-        print('Type "Help" for a list of avalible options')
+        print('Type "Help" for a list of available options')
 
     def select_data_file(self):
         """Helper method to handle file selection process using inquirer."""
-        print('What Data Directory would you like to list? Select select from the list below with your arrow keys. Hit Enter over the option you want.')
+        print('What Data Directory would you like to list? Select from the list below with your arrow keys. Hit Enter over the option you want.')
 
         questions = [
             inquirer.List(
@@ -63,8 +62,8 @@ class CLI(cmd.Cmd):
                 dir_to_list = "./Data/Sample/"
 
         if os.path.exists(dir_to_list):
-            files = os.listdir(dir_to_list)
-            print(Fore.RED + f"Files in {dir_to_list}:")
+            print(Fore.RED + f"Listing files in {dir_to_list}:")
+            files = self.list_files_recursive(dir_to_list)
         else:
             print(Fore.YELLOW + f"Directory {dir_to_list} does not exist.")
             return None, None
@@ -90,8 +89,20 @@ class CLI(cmd.Cmd):
         else:
             print(Fore.YELLOW + f"No files found in {dir_to_list}.")
             return None, None
-    
-    # these are the actual graphs being generated
+
+    def list_files_recursive(self, dir_path):
+        """Recursively lists all files in a directory and its subdirectories."""
+        all_files = []
+        
+        for root, dirs, files in os.walk(dir_path):
+            for file in files:
+                # Append the full relative path of each file found
+                relative_path = os.path.relpath(os.path.join(root, file), dir_path)
+                all_files.append(relative_path)
+        
+        return all_files
+
+    # These are the actual graphs being generated
     def generate_graph(self, df, graph_type):
         """Helper method to generate graphs based on user selection."""
         match graph_type:
@@ -141,7 +152,7 @@ class CLI(cmd.Cmd):
             print("Quit cancelled")
 
     def do_graph_select(self, line):
-        """Generate a specific graph from a list of options. """
+        """Generate a specific graph from a list of options."""
         print("Generating Graph...")
 
         file_path, _ = self.select_data_file()
@@ -158,36 +169,35 @@ class CLI(cmd.Cmd):
             print(Fore.YELLOW + f"Error reading CSV file: {e}")
             return
 
-        # Graph Descritons
+        # Graph Descriptions
         print(Fore.RED + "What graph type would you like to generate?")
         print('')
         print(Fore.RED + 'Engine Type Agnostic')
         print("map: a map of the course using GPS")
         print("speed-dist: Speed at different distances")
-        print(Fore.RED + 'ICE Spesific:')
-        print("map-flow: A GPS map of the track overlayed with data from flow meter")
+        print(Fore.RED + 'ICE Specific:')
+        print("map-flow: A GPS map of the track overlayed with data from the flow meter")
         print("flow-dist: Flow rate at different distances")
-        print("acel-speed-dotplot: Dotplot of acceleration, speed and fuel consumption")
-        print(Fore.RED + "BE Spesific:")
+        print("acel-speed-dotplot: Dotplot of acceleration, speed, and fuel consumption")
+        print(Fore.RED + "BE Specific:")
         print("joule-dist: Net amount of energy used at different distances")
-        print("BE-Joule-map: A Gps map of the course overlayed by energy consumption")
-        print("Current-Dist: Current consumtion at diffrent points in the track")
+        print("BE-Joule-map: A GPS map of the course overlayed by energy consumption")
+        print("Current-Dist: Current consumption at different points in the track")
 
-        #uses inquirer to select from list
+        # Uses inquirer to select from a list
         questions = [
             inquirer.List(
                 "type",
                 message=Fore.RED + "Select a Graph",
-                choices=["map", "map-flow","flow-dist","joule-dist", "speed-dist", "acel-speed-dotplot", 'BE-Joule-map', 'Current-Dist']
-                ),
+                choices=["map", "map-flow", "flow-dist", "joule-dist", "speed-dist", "acel-speed-dotplot", 'BE-Joule-map', 'Current-Dist']
+            ),
         ]
-        # by defualt it passes a dictinary with ["Type": "choice"], below querys it jusr for the choice
         graph_type = inquirer.prompt(questions)["type"]
         print(graph_type)
         self.generate_graph(df, graph_type)
 
     def do_graph(self, line):
-        """Generate standard graphs from the telemetry data. (BE is WIP, these are ICE spesific for now. BE options are under graph_select)"""
+        """Generate standard graphs from the telemetry data."""
         print("Generating Standard Graph Set.")
         
         file_path, _ = self.select_data_file()
@@ -205,7 +215,7 @@ class CLI(cmd.Cmd):
             print(Fore.YELLOW + f"Error reading CSV file: {e}")
             return
 
-        # Generate multiple graphs, the useful stuff. for the moment these are ICE spesefic
+        # Generate multiple graphs
         print("Generating graphs...")
         self.generate_graph(df, 'map')
         self.generate_graph(df, 'map-flow')
@@ -213,13 +223,6 @@ class CLI(cmd.Cmd):
         self.generate_graph(df, 'joule-dist')
         self.generate_graph(df, 'speed-dist')
         self.generate_graph(df, 'acel-speed-dotplot')
-
-    #WIP coming soon, as soon as I have a need for settings this will get added.
-    # def do_settings(self, line):
-    #     """Option to change user settings"""
-    #     print(Fore.RED + 'Settings')
-    #     print('What Setting would you like to change?')
-    #     print('')
 
 if __name__ == '__main__':
     CLI().cmdloop()
