@@ -10,6 +10,7 @@
 # I hope that this script is helpful in making graphs to interpret the telemetry data put out by shell.
 # Special Thanks to Marcus Schmitd from Schmitd Elektronik for helping me learn all this and all the work they have done for SEM
 # https://schmid-elektronik.ch/racebootcamp/
+# https://telemetry.sem-app.com/wiki/doku.php/telemetry_data/channel_descriptions
 
 import cmd
 import os
@@ -106,22 +107,23 @@ class CLI(cmd.Cmd):
     def generate_graph(self, df, graph_type):
         """Helper method to generate graphs based on user selection."""
         match graph_type:
-            case 'map':
+            case 'Map':
                 print('Generating map...')
                 fig = df.plot(x='gps_longitude', y='gps_latitude', color='lap_lap')
-            case 'map-flow':
-                print('Generating map-flow...')
-                fig = df.plot(x='gps_longitude', y='gps_latitude', color='lfm_instantflow', kind='scatter', facet_col='lap_lap', facet_col_wrap=4)
-            case 'flow-dist':
-                print('Generating flow-dist...')
-                fig = df.plot(x='lap_dist', y='lfm_instantflow', color='lap_lap')
-            case 'joule-dist':
-                print('Generating joule-dist...')
-                fig = df.plot(x='lap_dist', y='lap_jm3_netjoule', color='lap_lap')
-            case 'speed-dist':
+            
+            case 'Speed-Dist':
                 print('Generating speed-dist...')
                 fig = df.plot(x='lap_dist', y='gps_speed', color='lap_lap')
-            case 'acel-speed-dotplot':
+            
+            case 'Map-Flow':
+                print('Generating map-flow...')
+                fig = df.plot(x='gps_longitude', y='gps_latitude', color='lfm_instantflow', kind='scatter', facet_col='lap_lap', facet_col_wrap=4)
+            
+            case 'Flow-Dist':
+                print('Generating flow-dist...')
+                fig = df.plot(x='lap_dist', y='lfm_instantflow', color='lap_lap')
+            
+            case 'Acel-Speed-Dotplot':
                 print('Generating acel-speed-dotplot...')
                 df['acceleration'] = 0.
                 df['consumption'] = 0.
@@ -133,12 +135,23 @@ class CLI(cmd.Cmd):
                     df.loc[ind, 'consumption'] = (df.loc[ind, 'lfm_integratedcorrflow'] - df.loc[ind_prev, 'lfm_integratedcorrflow']) / (df.loc[ind, 'obc_timestamp'] - df.loc[ind_prev, 'obc_timestamp'])
 
                 fig = df.plot.scatter(x='acceleration', y='gps_speed', color='consumption')
+            
+            case 'CorrFlow-Dist':
+                print('Generating CorrFlow-Dist')
+                fig = df.plot(x='lap_dist', y='lap_lfm_integratedcorrflow', color='lap_lap')
+            
+            case 'Joule-Dist':
+                print('Generating joule-dist...')
+                fig = df.plot(x='lap_dist', y='lap_jm3_netjoule', color='lap_lap')
+            
             case 'BE-Joule-map':
                 print('Generating BE-Joule-map...')
                 fig = df.plot(x='gps_longitude', y='gps_latitude', color='jm3_current', kind='scatter', facet_col='lap_lap', facet_col_wrap=4)
+            
             case 'Current-Dist':
                 print('Generating Current-dist...')
                 fig = df.plot(x='lap_dist', y='jm3_current', color='lap_lap')
+            
         fig.show()
 
     # Commands 
@@ -173,14 +186,15 @@ class CLI(cmd.Cmd):
         print(Fore.RED + "What graph type would you like to generate?")
         print('')
         print(Fore.RED + 'Engine Type Agnostic')
-        print("map: a map of the course using GPS")
-        print("speed-dist: Speed at different distances")
+        print("Map: a map of the course using GPS")
+        print("Speed-dist: Speed at different distances")
         print(Fore.RED + 'ICE Specific:')
-        print("map-flow: A GPS map of the track overlayed with data from the flow meter")
-        print("flow-dist: Flow rate at different distances")
-        print("acel-speed-dotplot: Dotplot of acceleration, speed, and fuel consumption")
+        print("Map-Flow: A GPS map of the track overlayed with data from the flow meter")
+        print("Flow-Dist: Flow rate at different distances")
+        print("Acel-Speed-Dotplot: Dotplot of acceleration, speed, and fuel consumption")
+        print("CorrFlow-Dist: The lifetime fuel flow in relation to distance")
         print(Fore.RED + "BE Specific:")
-        print("joule-dist: Net amount of energy used at different distances")
+        print("Joule-Dist: Net amount of energy used at different distances")
         print("BE-Joule-map: A GPS map of the course overlayed by energy consumption")
         print("Current-Dist: Current consumption at different points in the track")
 
@@ -189,7 +203,7 @@ class CLI(cmd.Cmd):
             inquirer.List(
                 "type",
                 message=Fore.RED + "Select a Graph",
-                choices=["map", "map-flow", "flow-dist", "joule-dist", "speed-dist", "acel-speed-dotplot", 'BE-Joule-map', 'Current-Dist']
+                choices=["Map", "Speed-Dist", "Map-Flow", "Flow-Dist", "Acel-Speed-Dotplot", 'CorrFlow-Dist', "Joule-Dist",  'BE-Joule-map', 'Current-Dist',]
             ),
         ]
         graph_type = inquirer.prompt(questions)["type"]
@@ -220,7 +234,7 @@ class CLI(cmd.Cmd):
         self.generate_graph(df, 'map')
         self.generate_graph(df, 'map-flow')
         self.generate_graph(df, 'flow-dist')
-        self.generate_graph(df, 'joule-dist')
+        self.generate_graph(df, 'CorrFlow-Dist')
         self.generate_graph(df, 'speed-dist')
         self.generate_graph(df, 'acel-speed-dotplot')
 
