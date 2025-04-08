@@ -152,6 +152,10 @@ class CLI(cmd.Cmd):
                 print('Generating Current-dist...')
                 fig = df.plot(x='lap_dist', y='jm3_current', color='lap_lap')
             
+            case _:
+                print(Fore.YELLOW + f"Graph type '{graph_type}' is not recognized.")
+                return
+
         fig.show()
 
     # Commands 
@@ -231,12 +235,12 @@ class CLI(cmd.Cmd):
 
         # Generate multiple graphs
         print("Generating graphs...")
-        self.generate_graph(df, 'map')
-        self.generate_graph(df, 'map-flow')
-        self.generate_graph(df, 'flow-dist')
+        self.generate_graph(df, 'Map')
+        self.generate_graph(df, 'Map-Flow')
+        self.generate_graph(df, 'Flow-Dist')
         self.generate_graph(df, 'CorrFlow-Dist')
-        self.generate_graph(df, 'speed-dist')
-        self.generate_graph(df, 'acel-speed-dotplot')
+        self.generate_graph(df, 'Speed-Dist')
+        self.generate_graph(df, 'Acel-Speed-Dotplot')
 
 if __name__ == '__main__':
     CLI().cmdloop()
